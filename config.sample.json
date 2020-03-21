@@ -1,0 +1,6 @@
+{
+    "ldap_host":"ldap.42campus.org",
+    "ldap_base":"ou=people,dc=42campus,dc=org",
+    "krb5_keytab":"nachos.keytab",
+    "krb5_principal":"nachos/guacamole"
+}

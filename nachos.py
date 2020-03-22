@@ -4,6 +4,8 @@ import os, json, sys
 import ldap
 import subprocess
 
+from guacamole import *
+
 CONFIG_FILE = 'config.json'
 
 """
@@ -50,5 +52,31 @@ Main
 if __name__ == "__main__":
     config          = open_and_load_config()
     con             = connect_ldap(config)
-    ldap_users      = get_ldap_users(config, con, "*")
-    guacamole_users = get_guacamole_users(config)
+    auth = guac_auth(config)
+#    print(auth['authToken'])
+
+#    ldap_users      = get_ldap_users(config, con, "*")
+    guacamole_users = guac_get_users(config, auth)
+    for user in guacamole_users:
+        if (guacamole_users[user]['attributes']['guac-organization'] == "student"):
+            print(user)
+
+    user = "test42"
+    group = config["guac_group"]
+    payload = {"username":user,
+               "password":"",
+               "attributes":{
+                   "guac-organization":group
+               }}
+
+    try:
+        guac_add_user(config, auth, payload)
+    except:
+        print("failed guac_add_user")
+        
+    try:
+        guac_add_user_to_group(config, auth, user, group)
+    except Exception as e:
+        print("failed guac_add_user_to_group")
+        print(e)
+    

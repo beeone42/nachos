@@ -15,8 +15,6 @@ def guac_request(token, method, url, payload = None,
         if not r.ok:
             print(r.content)
         r.raise_for_status()
-        if (r.status_code > 200):
-            print("Code:", r.status_code)
         if json_response:
             try:
                 return r.json()

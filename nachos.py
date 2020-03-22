@@ -42,8 +42,10 @@ def get_ldap_users(config, con, uid):
     print("%d ldap users" % len(logins))
     return logins
 
-def get_guacamole_users(config):
-    return "nop"
+def get_guacamole_users(config, auth):
+    guacamole_users = guac_get_users(config, auth)
+    print("%d guacamole users" % len(guacamole_users))
+    return guacamole_users
 
 
 def create_user(config, auth, user):
@@ -70,20 +72,27 @@ Main
 if __name__ == "__main__":
     config          = open_and_load_config()
     con             = connect_ldap(config)
-    auth = guac_auth(config)
-#    print(auth['authToken'])
+    auth            = guac_auth(config)
 
     ldap_users      = get_ldap_users(config, con, "*")
-    guacamole_users = guac_get_users(config, auth)
+    guacamole_users = get_guacamole_users(config, auth)
 
+    users_to_delete = []
     for user in guacamole_users:
-        if (guacamole_users[user]['attributes']['guac-organization'] == "student"):
-            print("already exists: %s", user)
-
+        if (guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]):
+            if (user) not in ldap_users:
+                users_to_delete.append(user)
+                print("REM %s", user)
+    print("%d users to delete" % len(users_to_delete))
+            
+    users_to_create = []
     for user in ldap_users:
         if user not in guacamole_users:
-            print("create_user(%s)" % user)
-            create_user(config, auth, user)
-        else:
-            print("! create_user(%s)" % user)
+            users_to_create.append(user)
+    print("%d users to create" % len(users_to_create))
+
+    for user in users_to_create:
+        print("create_user(%s)" % user)
+        create_user(config, auth, user)
+
     

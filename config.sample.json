@@ -10,7 +10,14 @@
     "guac_tree_ssh":"ssh-cluster",
     "guac_tree_vnc":"vnc-cluster",
     "guac_vnc_pass":"Ch4ngeM3",
+    "guac_vnc_port":"5900",
+    "guac_vnc_max_co":"1",
+    "guac_vnc_max_per_user":"1",
     "guac_ssh_port":"22",
     "guac_ssh_max_co":"10",
-    "guac_ssh_max_per_user":"2"
+    "guac_ssh_max_per_user":"2",
+    "host_ips":{"a":10,
+		"b":[13,13],
+		"c":[1,13],
+		"d":[1,27]}
 }

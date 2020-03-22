@@ -15,6 +15,8 @@ def guac_request(token, method, url, payload = None,
         if not r.ok:
             print(r.content)
         r.raise_for_status()
+        if r.status_code == 204:
+                return ""
         if json_response:
             try:
                 return r.json()
@@ -75,6 +77,18 @@ def guac_add_connection(config, auth, payload):
             auth["dataSource"]
         ),
         payload = payload
+    )
+
+def guac_del_connection(config, auth, id):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'DELETE',
+        url = '{}/session/data/{}/connections/{}'.format(
+                config["guac_api"],
+                auth["dataSource"],
+                id
+        ),
+        payload = {}
     )
 
 def guac_add_user_to_group(config, auth, user, group):

@@ -44,7 +44,25 @@ def get_ldap_users(config, con, uid):
 
 def get_guacamole_users(config):
     return "nop"
-        
+
+
+def create_user(config, auth, user):
+    group = config["guac_group"]
+    payload = {"username":user,
+               "password":"",
+               "attributes":{
+                   "guac-organization":group
+               }}
+    try:
+        guac_add_user(config, auth, payload)
+    except:
+        print("failed guac_add_user")
+    try:
+        guac_add_user_to_group(config, auth, user, group)
+    except Exception as e:
+        print("failed guac_add_user_to_group")
+        print(e)
+
 """
 Main
 """
@@ -55,28 +73,17 @@ if __name__ == "__main__":
     auth = guac_auth(config)
 #    print(auth['authToken'])
 
-#    ldap_users      = get_ldap_users(config, con, "*")
+    ldap_users      = get_ldap_users(config, con, "*")
     guacamole_users = guac_get_users(config, auth)
+
     for user in guacamole_users:
         if (guacamole_users[user]['attributes']['guac-organization'] == "student"):
-            print(user)
+            print("already exists: %s", user)
 
-    user = "test42"
-    group = config["guac_group"]
-    payload = {"username":user,
-               "password":"",
-               "attributes":{
-                   "guac-organization":group
-               }}
-
-    try:
-        guac_add_user(config, auth, payload)
-    except:
-        print("failed guac_add_user")
-        
-    try:
-        guac_add_user_to_group(config, auth, user, group)
-    except Exception as e:
-        print("failed guac_add_user_to_group")
-        print(e)
+    for user in ldap_users:
+        if user not in guacamole_users:
+            print("create_user(%s)" % user)
+            create_user(config, auth, user)
+        else:
+            print("! create_user(%s)" % user)
     

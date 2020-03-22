@@ -47,6 +47,21 @@ def get_guacamole_users(config, auth):
     print("%d guacamole users" % len(guacamole_users))
     return guacamole_users
 
+def get_guacamole_connection_group_id(config, host, root):
+    cs = guac_get_connections(config, host, root)
+    for grp in cs["childConnectionGroups"]:
+        if (grp["name"] == root):
+            return grp["identifier"]
+    return "-1"
+
+def get_guacamole_connections(config, host, root):
+    cs = guac_get_connections(config, host, root)
+    res = {}
+    for grp in cs["childConnectionGroups"]:
+        if (grp["name"] == root):
+            for c in grp["childConnections"]:
+                res[c["name"]] = c["identifier"]
+    return res
 
 def create_user(config, auth, user):
     group = config["guac_group"]
@@ -65,17 +80,57 @@ def create_user(config, auth, user):
         print("failed guac_add_user_to_group")
         print(e)
 
+
+def check_host(ip):
+    child = subprocess.Popen(["ping", "-c", "1", "-w", "1", ip], stdout = subprocess.PIPE)
+    datas = child.communicate()[0]
+    rcode = child.returncode
+    return rcode == 0
+    
+        
 """
 Main
 """
+
+def check_subnet(a, b, c, d):
+    ips = []
+    for i in range(c[0], c[1] + 1):
+        for j in range(d[0], d[1] + 1):
+            ip = "%d.%d.%d.%d" % (a, b, i, j)
+            r = check_host(ip)
+            print(ip, r)
+            if r:
+                ips.append(ip)
+    return ips
+
+
+def create_ssh_connection(config, auth, ip, ssh_id):
+    print("create ssh", ip)
+    payload = {"parentIdentifier":ssh_id,
+               "name":ip,
+               "protocol":"ssh",
+               "parameters":{"port":config["guac_ssh_port"],
+                             "hostname":ip},
+               "attributes":{"max-connections":"10",
+                             "max-connections-per-user":"2"}
+    }
+    
+    try:
+        guac_add_connection(config, auth, payload)
+    except:
+        print("failed guac_add_connection")
+
 
 if __name__ == "__main__":
     config          = open_and_load_config()
     con             = connect_ldap(config)
     auth            = guac_auth(config)
 
-    ldap_users      = get_ldap_users(config, con, "*")
-    guacamole_users = get_guacamole_users(config, auth)
+#    ldap_users      = get_ldap_users(config, con, "*")
+#    guacamole_users = get_guacamole_users(config, auth)
+
+    ldap_users      = []
+    guacamole_users = []
 
     users_to_delete = []
     for user in guacamole_users:
@@ -96,3 +151,22 @@ if __name__ == "__main__":
         create_user(config, auth, user)
 
     
+    e2 = check_subnet(10, 12, [2,2], [6,20])
+    ssh = get_guacamole_connections(config, auth, config["guac_tree_ssh"])
+    ssh_id = get_guacamole_connection_group_id(config, auth, config["guac_tree_ssh"])
+
+
+    ssh_to_create = []
+    for ip in e2:
+        if ip not in ssh:
+            ssh_to_create.append(ip)
+    
+    print(ssh_to_create)
+
+    for ip in ssh_to_create:
+        create_ssh_connection(config, auth, ip, ssh_id)
+    
+    
+#    print(check_host("10.13.2.10"))
+
+

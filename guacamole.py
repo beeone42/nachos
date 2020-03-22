@@ -44,27 +44,33 @@ def guac_get_users(config, auth):
         )
     )
 
+def guac_get_connections(config, auth, root):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'GET',
+        url = '{}/session/data/{}/connectionGroups/ROOT/tree'.format(
+            config["guac_api"],
+            auth["dataSource"]
+        )
+    )
+
 
 def guac_add_user(config, auth, payload):
-    '''
-    Add/enable a user
-    Example payload:
-    {"username":"test"
-    "password":"testpwd",
-    "attributes":{
-            "disabled":"",
-            "expired":"",
-            "access-window-start":"",
-            "access-window-end":"",
-            "valid-from":"",
-            "valid-until":"",
-            "timezone":null}}
-    '''
-
     return guac_request(
         token = auth["authToken"],
         method = 'POST',
         url = '{}/session/data/{}/users'.format(
+            config["guac_api"],
+            auth["dataSource"]
+        ),
+        payload = payload
+    )
+
+def guac_add_connection(config, auth, payload):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'POST',
+        url = '{}/session/data/{}/connections'.format(
             config["guac_api"],
             auth["dataSource"]
         ),

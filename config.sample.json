@@ -6,5 +6,11 @@
     "guac_api":"https://guacamole.42campus.org/api",
     "guac_user":"guacadmin",
     "guac_pass":"ChangeMe",
-    "guac_group":"students"
+    "guac_group":"students",
+    "guac_tree_ssh":"ssh-cluster",
+    "guac_tree_vnc":"vnc-cluster",
+    "guac_vnc_pass":"Ch4ngeM3",
+    "guac_ssh_port":"22",
+    "guac_ssh_max_co":"10",
+    "guac_ssh_max_per_user":"2"
 }

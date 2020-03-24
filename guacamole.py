@@ -68,6 +68,29 @@ def guac_add_user(config, auth, payload):
         payload = payload
     )
 
+def guac_del_user(config, auth, uid):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'DELETE',
+        url = '{}/session/data/{}/users/{}'.format(
+                config["guac_api"],
+                auth["dataSource"],
+                uid
+        ),
+        payload = {}
+    )
+
+def guac_add_user_to_group(config, auth, user, group):
+    payload = [{"op": "add", "path": "/", "value": group}]
+    return guac_request(
+        token = auth["authToken"],
+        method = 'PATCH',
+        url = '{}/session/data/{}/users/{}/userGroups'.format(
+            config["guac_api"], auth["dataSource"], user),
+        payload = payload,
+        json_response = False
+    )
+
 def guac_add_connection(config, auth, payload):
     return guac_request(
         token = auth["authToken"],
@@ -91,13 +114,3 @@ def guac_del_connection(config, auth, id):
         payload = {}
     )
 
-def guac_add_user_to_group(config, auth, user, group):
-    payload = [{"op": "add", "path": "/", "value": group}]
-    return guac_request(
-        token = auth["authToken"],
-        method = 'PATCH',
-        url = '{}/session/data/{}/users/{}/userGroups'.format(
-            config["guac_api"], auth["dataSource"], user),
-        payload = payload,
-        json_response = False
-    )

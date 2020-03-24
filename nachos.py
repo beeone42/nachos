@@ -141,7 +141,6 @@ def create_vnc_connection(config, auth, ip, vnc_id):
         print("failed guac_add_connection")
 
 
-
         
 """
 Main
@@ -177,6 +176,10 @@ if __name__ == "__main__":
     for user in users_to_create:
         print("create_user(%s)" % user)
         create_user(config, auth, user)
+        
+    for user in users_to_delete:
+        print("delete_user(%s)" % user)
+        print(guac_del_user(config, auth, user))
 
     
     ips = check_subnet(
@@ -191,28 +194,31 @@ if __name__ == "__main__":
     ssh = get_guacamole_connections(config, auth, config["guac_tree_ssh"], "ssh")
     ssh_id = get_guacamole_connection_group_id(config, auth, config["guac_tree_ssh"])
 
-    ssh_to_create = []
     for ip in ips:
         if ip not in ssh:
-            ssh_to_create.append(ip)
+            create_ssh_connection(config, auth, ip, ssh_id)
+
+# delete SSH
+        
+    for ip in ssh:
+        if ip not in ips:
+            print("delete SSH %s (%s)" % (ip, ssh[ip]))
+            guac_del_connection(config, auth, ssh[ip])
     
-    print("ssh_to_create:", ssh_to_create)
-
-    for ip in ssh_to_create:
-        create_ssh_connection(config, auth, ip, ssh_id)
-
+        
 # create VNC
 
     vnc = get_guacamole_connections(config, auth, config["guac_tree_vnc"], "vnc")
     vnc_id = get_guacamole_connection_group_id(config, auth, config["guac_tree_vnc"])
 
-    vnc_to_create = []
     for ip in ips:
         if ip not in vnc:
-            vnc_to_create.append(ip)
-    
-    print("vnc_to_create:", vnc_to_create)
+            create_vnc_connection(config, auth, ip, vnc_id)
 
-    for ip in vnc_to_create:
-        create_vnc_connection(config, auth, ip, vnc_id)
+# delete VNC
+        
+    for ip in vnc:
+        if ip not in ips:
+            print("delete VNC %s (%s)" % (ip, vnc[ip]))
+            guac_del_connection(config, auth, vnc[ip])
 

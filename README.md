@@ -7,6 +7,9 @@ to make guacamole better
 ```
 sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev
 sudo apt-get install libsasl2-modules-gssapi-mit ldap-utils
+sudo apt-get install krb5-user
+
+sudo apt install python3-pip
 pip3 install requests
 pip3 install python-ldap
 

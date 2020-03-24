@@ -59,17 +59,18 @@ def get_guacamole_connections(config, auth, root, kind):
     res = {}
     for grp in cs["childConnectionGroups"]:
         if (grp["name"] == root):
-            for c in grp["childConnections"]:
-                infos = c["name"].split(":")
-                if len(infos) == 2:
-                    if (infos[0] == kind):
-                        res[infos[1]] = c["identifier"]
+            if ("childConnections" in grp):
+                for c in grp["childConnections"]:
+                    infos = c["name"].split(":")
+                    if len(infos) == 2:
+                        if (infos[0] == kind):
+                            res[infos[1]] = c["identifier"]
+                        else:
+                            print("bogus co:", c["name"])
+                            guac_del_connection(config, auth, c["identifier"])
                     else:
                         print("bogus co:", c["name"])
                         guac_del_connection(config, auth, c["identifier"])
-                else:
-                    print("bogus co:", c["name"])
-                    guac_del_connection(config, auth, c["identifier"])
     return res
 
 def create_user(config, auth, user):

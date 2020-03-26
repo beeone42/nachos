@@ -162,8 +162,6 @@ def create_vnc_connection(config, auth, ip, vnc_id):
 """
 Main
 """
-
-
         
 if __name__ == "__main__":
     config          = open_and_load_config()
@@ -212,13 +210,14 @@ if __name__ == "__main__":
    
 # optionnal: set random pass on existing users
 
-    print("set random pass")
-    for user in guacamole_users:
-        if (guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]):
-            if (user) in ldap_users:
-                passwd = get_rand_pass()
-                print("update_user_pass   %-8s : %s" % (user, passwd))
-                update_user_pass(config, auth, user, passwd)
+    if False:
+        print("set random pass")
+        for user in guacamole_users:
+            if (guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]):
+                if (user) in ldap_users:
+                    passwd = get_rand_pass()
+                    print("update_user_pass   %-8s : %s" % (user, passwd))
+                    update_user_pass(config, auth, user, passwd)
 
 # scan network
 

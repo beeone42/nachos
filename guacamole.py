@@ -68,14 +68,26 @@ def guac_add_user(config, auth, payload):
         payload = payload
     )
 
-def guac_del_user(config, auth, uid):
+def guac_update_user(config, auth, user, payload):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'PUT',
+        url = '{}/session/data/{}/users/{}'.format(
+                config["guac_api"],
+                auth["dataSource"],
+                user
+        ),
+        payload = payload
+    )
+
+def guac_del_user(config, auth, user):
     return guac_request(
         token = auth["authToken"],
         method = 'DELETE',
         url = '{}/session/data/{}/users/{}'.format(
                 config["guac_api"],
                 auth["dataSource"],
-                uid
+                user
         ),
         payload = {}
     )

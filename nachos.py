@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os, json, sys
-import ldap
+import ldap, uuid
 import subprocess
 
 from guacamole import *
@@ -73,14 +73,20 @@ def get_guacamole_connections(config, auth, root, kind):
                         guac_del_connection(config, auth, c["identifier"])
     return res
 
-def create_user(config, auth, user):
+
+def get_rand_pass():
+    # generate random passwd
+    return uuid.uuid4().hex
+
+def create_user(config, auth, user, passwd):
     group = config["guac_group"]
     payload = {"username":user,
-               "password":"",
+               "password":passwd,
                "attributes":{
                    "guac-organization":group
                }}
     try:
+        print("create_user %s : %s" % (user, passwd))
         guac_add_user(config, auth, payload)
     except:
         print("failed guac_add_user")
@@ -90,7 +96,17 @@ def create_user(config, auth, user):
         print("failed guac_add_user_to_group")
         print(e)
 
+def update_user_pass(config, auth, user, passwd):
+    guac_update_user(config, auth, user,
+                     {
+                         "username":user,
+                         "attributes":{},
+                         "password":get_rand_pass()
+                     }
+    )
 
+
+    
 def check_host(ip):
     child = subprocess.Popen(["ping", "-c", "1", "-w", "1", ip], stdout = subprocess.PIPE)
     datas = child.communicate()[0]
@@ -160,6 +176,15 @@ if __name__ == "__main__":
 #    ldap_users      = []
 #    guacamole_users = []
 
+# check USERS to create and delete
+
+    users_to_create = []
+    for user in ldap_users:
+        if user not in guacamole_users:
+            users_to_create.append(user)
+    print("%d users to create" % len(users_to_create))
+
+
     users_to_delete = []
     for user in guacamole_users:
         if (guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]):
@@ -167,29 +192,43 @@ if __name__ == "__main__":
                 users_to_delete.append(user)
                 print("REM %s", user)
     print("%d users to delete" % len(users_to_delete))
-            
-    users_to_create = []
-    for user in ldap_users:
-        if user not in guacamole_users:
-            users_to_create.append(user)
-    print("%d users to create" % len(users_to_create))
-
-    for user in users_to_create:
-        print("create_user(%s)" % user)
-        create_user(config, auth, user)
-        
-    for user in users_to_delete:
-        print("delete_user(%s)" % user)
-        print(guac_del_user(config, auth, user))
 
     
+# create USERS (in LDAP but not in Guacamole yet)
+    
+    for user in users_to_create:
+        passwd = get_rand_pass()
+        print("create_user:   %-8s : %s" % (user, passwd))
+        create_user(config, auth, user, passwd)
+
+
+# delete USERS (no more in LDAP)
+
+        
+    for user in users_to_delete:
+        print("delete_user:   %-8s" % user)
+        print(guac_del_user(config, auth, user))
+
+   
+# optionnal: set random pass on existing users
+
+    print("set random pass")
+    for user in guacamole_users:
+        if (guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]):
+            if (user) in ldap_users:
+                passwd = get_rand_pass()
+                print("update_user_pass   %-8s : %s" % (user, passwd))
+                update_user_pass(config, auth, user, passwd)
+
+# scan network
+
     ips = check_subnet(
         config["host_ips"]["a"],
         config["host_ips"]["b"],
         config["host_ips"]["c"],
         config["host_ips"]["d"])
 
-
+                
 # create SSH
 
     ssh = get_guacamole_connections(config, auth, config["guac_tree_ssh"], "ssh")

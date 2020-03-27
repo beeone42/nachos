@@ -1,4 +1,6 @@
 {
+    "fajitas_host":"localhost",
+    "fajitas_port":"4242",
     "ldap_host":"ldap.42campus.org",
     "ldap_base":"ou=people,dc=42campus,dc=org",
     "krb5_keytab":"nachos.keytab",

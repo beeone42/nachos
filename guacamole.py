@@ -20,7 +20,7 @@ def guac_request(token, method, url, payload = None,
         if json_response:
             try:
                 return r.json()
-            except JSONDecodeError:
+            except json.JSONDecodeError:
                 print('Could not decode JSON response')
                 return r
         else:

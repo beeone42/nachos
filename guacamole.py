@@ -92,6 +92,16 @@ def guac_del_user(config, auth, user):
         payload = {}
     )
 
+def update_user_pass(config, auth, user, passwd):
+    guac_update_user(config, auth, user,
+                     {
+                         "username":user,
+                         "attributes":{},
+                         "password":passwd
+                     }
+    )
+
+
 def guac_add_user_to_group(config, auth, user, group):
     payload = [{"op": "add", "path": "/", "value": group}]
     return guac_request(

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from bottle import route, run, get, post, request
+from bottle import route, run, get, post, request, template
 import os, json, requests, urllib.parse
+from guacamole import *
 
 CONFIG_FILE = 'config.json'
 
@@ -14,7 +15,22 @@ def open_and_load_config():
         sys.exit(1)
 
 def get_intra_infos(token):
-    return "{'result':'ok'}"
+    url = config["intra_infos_url"]
+    params = [("access_token", token)]
+    r = requests.request(
+        method = "GET",
+        url = url,
+        params = params
+    )
+    if r.status_code != 200:
+        print(r.content)
+        return False
+    try:
+        return r.json()
+    except json.JSONDecodeError:
+        print('Could not decode JSON response')
+    print(r.content)
+    return False
         
 def get_intra_token(code):
     url = config["intra_token_url"]
@@ -42,27 +58,40 @@ def get_intra_token(code):
     print(r.content)
     return False
 
+def get_intra_oauth_url():
+    url = ("%s?client_id=%s&redirect_uri=%s&response_type=code" %
+           (config["intra_authorize_url"],
+            config["intra_client_id"],
+            urllib.parse.quote(config["fajitas_url"], safe=''))
+    )
+    return url
     
 @route('/')
 def hello():
     if 'Authorization' in request.headers:
         return (request.headers.get('Authorization'))
     else:
-        return("%s?client_id=%s&redirect_uri=%sregister&response_type=code" %
-                (config["intra_authorize_url"],
-                 config["intra_client_id"],
-                 urllib.parse.quote(config["fajitas_url"], safe=''))
-               )
+        return template('hello', url=get_intra_oauth_url())
 
 @route('/register')
 def register():
     code = request.query.get('code')
     token = get_intra_token(code)
     print(token)
+    if token == False:
+        return template('failed', url=get_intra_oauth_url())
     infos = get_intra_infos(token)
-    print(infos)
-    return infos
+    return template('register', url=get_intra_oauth_url(), token=token, infos=infos)
 
+@route('/set', method='POST')
+def set_passwd():
+    token = request.forms.get('token')
+    password = request.forms.get('password')
+    auth = guac_auth(config)
+    infos = get_intra_infos(token)
+    update_user_pass(config, auth, infos['login'], password)
+    return "Success !"
+    
 
 if __name__ == "__main__":
     config = open_and_load_config()

@@ -6,7 +6,7 @@
  	    
 +            <script ng-show="expectedCredentials">
 +	      $(function() { setTimeout(function(){
-+	          $("form.login-form").append("<div text-align='center'><a class='add-user button ng-binding' href='/nachos/'>Reset your password...</a></div>");
++	          $("form.login-form").append("<div align='center' style='padding-top:0.5em'><a class='add-user button ng-binding' href='/nachos/'>Reset your password...</a></div>");
 +	      }, 1000);});
 +	    </script>
 +

@@ -96,17 +96,6 @@ def create_user(config, auth, user, passwd):
         print("failed guac_add_user_to_group")
         print(e)
 
-def update_user_pass(config, auth, user, passwd):
-    guac_update_user(config, auth, user,
-                     {
-                         "username":user,
-                         "attributes":{},
-                         "password":get_rand_pass()
-                     }
-    )
-
-
-    
 def check_host(ip):
     child = subprocess.Popen(["ping", "-c", "1", "-w", "1", ip], stdout = subprocess.PIPE)
     datas = child.communicate()[0]

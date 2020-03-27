@@ -1,6 +1,17 @@
 {
     "fajitas_host":"localhost",
     "fajitas_port":"4242",
+    "fajitas_url":"https://guacamole.42campus.org/nachos/register",
+
+    "intra_client_id":"12345678abcdef",
+    "intra_client_secret":"abcdef12345678",
+
+    "intra_authorize_url":"https://api.intra.42.fr/oauth/authorize",
+    "intra_token_url":"https://api.intra.42.fr/oauth/token",
+    "intra_infos_url":"https://api.intra.42.fr/v2/me",
+    
+    "debug":"True",
+    
     "ldap_host":"ldap.42campus.org",
     "ldap_base":"ou=people,dc=42campus,dc=org",
     "krb5_keytab":"nachos.keytab",

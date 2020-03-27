@@ -1,4 +1,4 @@
-import requests
+import requests, uuid
 
 def guac_request(token, method, url, payload = None,
                  url_params = None, json_response = True):
@@ -68,6 +68,18 @@ def guac_add_user(config, auth, payload):
         payload = payload
     )
 
+def guac_get_user(config, auth, user):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'GET',
+        url = '{}/session/data/{}/users/{}'.format(
+                config["guac_api"],
+                auth["dataSource"],
+                user
+        ),
+        payload = {}
+    )
+
 def guac_update_user(config, auth, user, payload):
     return guac_request(
         token = auth["authToken"],
@@ -135,4 +147,90 @@ def guac_del_connection(config, auth, id):
         ),
         payload = {}
     )
+
+
+def get_rand_pass():
+    # generate random passwd
+    return uuid.uuid4().hex
+
+def create_user(config, auth, user, passwd):
+    group = config["guac_group"]
+    payload = {"username":user,
+               "password":passwd,
+               "attributes":{
+                   "guac-organization":group
+               }}
+    try:
+        print("create_user %s : %s" % (user, passwd))
+        guac_add_user(config, auth, payload)
+    except:
+        print("failed guac_add_user")
+    try:
+        guac_add_user_to_group(config, auth, user, group)
+    except Exception as e:
+        print("failed guac_add_user_to_group")
+        print(e)
+
+
+def get_guacamole_users(config, auth):
+    guacamole_users = guac_get_users(config, auth)
+    print("%d guacamole users" % len(guacamole_users))
+    return guacamole_users
+
+def get_guacamole_connection_group_id(config, auth, root):
+    cs = guac_get_connections(config, auth, root)
+    for grp in cs["childConnectionGroups"]:
+        if (grp["name"] == root):
+            return grp["identifier"]
+    return "-1"
+
+def get_guacamole_connections(config, auth, root, kind):
+    cs = guac_get_connections(config, auth, root)
+    res = {}
+    for grp in cs["childConnectionGroups"]:
+        if (grp["name"] == root):
+            if ("childConnections" in grp):
+                for c in grp["childConnections"]:
+                    infos = c["name"].split(":")
+                    if len(infos) == 2:
+                        if (infos[0] == kind):
+                            res[infos[1]] = c["identifier"]
+                        else:
+                            print("bogus co:", c["name"])
+                            guac_del_connection(config, auth, c["identifier"])
+                    else:
+                        print("bogus co:", c["name"])
+                        guac_del_connection(config, auth, c["identifier"])
+    return res
+
+def create_ssh_connection(config, auth, ip, ssh_id):
+    print("create ssh", ip)
+    payload = {"parentIdentifier":ssh_id,
+               "name":"ssh:%s" % ip,
+               "protocol":"ssh",
+               "parameters":{"port":config["guac_ssh_port"],
+                             "hostname":ip},
+               "attributes":{"max-connections":config["guac_ssh_max_co"],
+                             "max-connections-per-user":config["guac_ssh_max_per_user"]}
+    }
+    try:
+        guac_add_connection(config, auth, payload)
+    except:
+        print("failed guac_add_connection")
+
+def create_vnc_connection(config, auth, ip, vnc_id):
+    print("create vnc", ip)
+    payload = {"parentIdentifier":vnc_id,
+               "name":"vnc:%s" % ip,
+               "protocol":"vnc",
+               "parameters":{"port":config["guac_vnc_port"],
+                             "hostname":ip,
+                             "password":config["guac_vnc_pass"]},
+               "attributes":{"max-connections":config["guac_vnc_max_co"],
+                             "max-connections-per-user":config["guac_vnc_max_per_user"]}
+    }
+    try:
+        guac_add_connection(config, auth, payload)
+    except:
+        print("failed guac_add_connection")
 

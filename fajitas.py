@@ -2,17 +2,11 @@
 
 from bottle import route, run, get, post, request, template
 import os, json, requests, urllib.parse
+
 from guacamole import *
+from ldap_utils import *
 
 CONFIG_FILE = 'config.json'
-
-def open_and_load_config():
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as config_file:
-            return json.loads(config_file.read())
-    else:
-        print("File [%s] doesn't exist, aborting." % (CONFIG_FILE))
-        sys.exit(1)
 
 def get_intra_infos(token):
     url = config["intra_infos_url"]
@@ -80,17 +74,40 @@ def register():
     print(token)
     if token == False:
         return template('failed', url=get_intra_oauth_url())
+    
     infos = get_intra_infos(token)
+    login = infos['login']
+
+    con = connect_ldap(config)
+    linfo = get_ldap_users(config, con, login)
+    if (len(linfo) == 0):
+        return template('not-found', login = login)
+    
     return template('register', url=get_intra_oauth_url(), token=token, infos=infos)
 
 @route('/set', method='POST')
 def set_passwd():
     token = request.forms.get('token')
     password = request.forms.get('password')
-    auth = guac_auth(config)
     infos = get_intra_infos(token)
-    update_user_pass(config, auth, infos['login'], password)
-    return "Success !"
+    login = infos['login']
+
+    con = connect_ldap(config)
+    linfo = get_ldap_users(config, con, login)
+    if (len(linfo) == 0):
+        return "%s does not exists on this Campus !" % login
+
+    
+    auth = guac_auth(config)
+    try:
+        user = guac_get_user(config, auth, login)
+        print(user)
+    except:
+        create_user(config, auth, login, password)
+        return "Success ! user created"
+    
+    update_user_pass(config, auth, login, password)
+    return "Success ! password changed"
     
 
 if __name__ == "__main__":

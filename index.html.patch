@@ -1,0 +1,15 @@
+--- index.html	2020-03-27 10:37:16.378329072 -0300
++++ index.html.new	2020-03-27 10:35:43.426777464 -0300
+@@ -56,6 +56,12 @@
+                         form="expectedCredentials"
+                         values="acceptedCredentials"></guac-login>
+ 	    
++            <script ng-show="expectedCredentials">
++	      $(function() { setTimeout(function(){
++	          $("form.login-form").append("<div text-align='center'><a class='add-user button ng-binding' href='/nachos/'>Reset your password...</a></div>");
++	      }, 1000);});
++	    </script>
++
+         </div>
+ 
+         <!-- Absolute fatal error -->

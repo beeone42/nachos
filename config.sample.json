@@ -1,4 +1,6 @@
 {
+    "campus":"42campus.org",
+
     "fajitas_host":"localhost",
     "fajitas_port":"4242",
     "fajitas_url":"https://guacamole.42campus.org/nachos/register",

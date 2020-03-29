@@ -122,20 +122,28 @@ def get_guacamole_connections_all(config, auth):
                 }
     return res
 
-@route('/stats', method='GET')
-def get_stats():
+
+def get_stats(config):
     auth = guac_auth(config)
     stats = guac_get_stats(config, auth)
     cons = get_guacamole_connections_all(config, auth)
-    res = {}
+    res = {'campus':config['campus'], 'connexions':[], 'count':len(stats)}
+    i = 1;
     for s in stats:
-        res[s] = {
+        res['connexions'].append({
+            'id':i,
+            'campus':config['campus'],
             'login':stats[s]['username'],
             'ip':stats[s]['remoteHost'],
             'con':cons['con'][stats[s]['connectionIdentifier']]['name'],
             'proto':cons['con'][stats[s]['connectionIdentifier']]['proto'],
-        }
+        })
+        i = i + 1
     return res
+
+@route('/stats', method='GET')
+def get_stats_details():
+    return get_stats(config)
 
 if __name__ == "__main__":
     config = open_and_load_config()

@@ -96,7 +96,6 @@ def set_passwd():
     linfo = get_ldap_users(config, con, login)
     if (len(linfo) == 0):
         return "%s does not exists on this Campus !" % login
-
     
     auth = guac_auth(config)
     try:
@@ -109,6 +108,34 @@ def set_passwd():
     update_user_pass(config, auth, login, password)
     return "Success ! password changed"
     
+
+def get_guacamole_connections_all(config, auth):
+    cs = guac_get_connections(config, auth, 'ROOT')
+    res = {'groups':{}, 'con':{}}
+    for grp in cs["childConnectionGroups"]:
+        res['groups'][grp['name']] = {'active':grp['activeConnections']}
+        if ("childConnections" in grp):
+            for c in grp["childConnections"]:
+                res['con'][c['identifier']] = {'name':c['name'],
+                                       'proto':c['protocol']
+                                       
+                }
+    return res
+
+@route('/stats', method='GET')
+def get_stats():
+    auth = guac_auth(config)
+    stats = guac_get_stats(config, auth)
+    cons = get_guacamole_connections_all(config, auth)
+    res = {}
+    for s in stats:
+        res[s] = {
+            'login':stats[s]['username'],
+            'ip':stats[s]['remoteHost'],
+            'con':cons['con'][stats[s]['connectionIdentifier']]['name'],
+            'proto':cons['con'][stats[s]['connectionIdentifier']]['proto'],
+        }
+    return res
 
 if __name__ == "__main__":
     config = open_and_load_config()

@@ -36,6 +36,16 @@ def guac_auth(config):
     r.raise_for_status()
     return r.json()
 
+def guac_get_stats(config, auth):
+    return guac_request(
+        token = auth["authToken"],
+        method = 'GET',
+        url = '{}/session/data/{}/activeConnections'.format(
+            config["guac_api"],
+            auth["dataSource"]
+        )
+    )
+        
 def guac_get_users(config, auth):
     return guac_request(
         token = auth["authToken"],
@@ -50,9 +60,10 @@ def guac_get_connections(config, auth, root):
     return guac_request(
         token = auth["authToken"],
         method = 'GET',
-        url = '{}/session/data/{}/connectionGroups/ROOT/tree'.format(
-            config["guac_api"],
-            auth["dataSource"]
+        url = '{}/session/data/{}/connectionGroups/{}/tree'.format(
+                config["guac_api"],
+                auth["dataSource"],
+                root
         )
     )
 
@@ -185,7 +196,7 @@ def get_guacamole_connection_group_id(config, auth, root):
     return "-1"
 
 def get_guacamole_connections(config, auth, root, kind):
-    cs = guac_get_connections(config, auth, root)
+    cs = guac_get_connections(config, auth, 'ROOT')
     res = {}
     for grp in cs["childConnectionGroups"]:
         if (grp["name"] == root):

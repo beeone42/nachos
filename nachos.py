@@ -89,12 +89,26 @@ if __name__ == "__main__":
 
 # scan network
 
-    ips = check_subnet(
-        config["host_ips"]["a"],
-        config["host_ips"]["b"],
-        config["host_ips"]["c"],
-        config["host_ips"]["d"])
+    host_ssh = "host_ssh"
+    if ("host_ssh" not in config):
+        host_ssh = "host_ips"
 
+    ips_ssh = check_subnet(
+        config[host_ssh]["a"],
+        config[host_ssh]["b"],
+        config[host_ssh]["c"],
+        config[host_ssh]["d"])
+
+    
+    if ("host_vnc" not in config):
+        ips_vnc = ips_ssh
+    else:
+        ips_vnc = check_subnet(
+            config["host_vnc"]["a"],
+            config["host_vnc"]["b"],
+            config["host_vnc"]["c"],
+            config["host_vnc"]["d"])
+    
                 
 # create SSH
 

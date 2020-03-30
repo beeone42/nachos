@@ -60,10 +60,9 @@ def guac_get_connections(config, auth, root):
     return guac_request(
         token = auth["authToken"],
         method = 'GET',
-        url = '{}/session/data/{}/connectionGroups/{}/tree'.format(
+        url = '{}/session/data/{}/connectionGroups/ROOT/tree'.format(
                 config["guac_api"],
-                auth["dataSource"],
-                root
+                auth["dataSource"]
         )
     )
 

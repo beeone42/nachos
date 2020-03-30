@@ -115,10 +115,13 @@ def guac_del_user(config, auth, user):
     )
 
 def update_user_pass(config, auth, user, passwd):
+    group = config["guac_group"]
     guac_update_user(config, auth, user,
                      {
                          "username":user,
-                         "attributes":{},
+                         "attributes":{
+                                 "guac-organization":group
+                         },
                          "password":passwd
                      }
     )

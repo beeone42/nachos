@@ -115,14 +115,14 @@ if __name__ == "__main__":
     ssh = get_guacamole_connections(config, auth, config["guac_tree_ssh"], "ssh")
     ssh_id = get_guacamole_connection_group_id(config, auth, config["guac_tree_ssh"])
 
-    for ip in ips:
+    for ip in ips_ssh:
         if ip not in ssh:
             create_ssh_connection(config, auth, ip, ssh_id)
 
 # delete SSH
         
     for ip in ssh:
-        if ip not in ips:
+        if ip not in ips_ssh:
             print("delete SSH %s (%s)" % (ip, ssh[ip]))
             guac_del_connection(config, auth, ssh[ip])
     
@@ -132,14 +132,14 @@ if __name__ == "__main__":
     vnc = get_guacamole_connections(config, auth, config["guac_tree_vnc"], "vnc")
     vnc_id = get_guacamole_connection_group_id(config, auth, config["guac_tree_vnc"])
 
-    for ip in ips:
+    for ip in ips_vnc:
         if ip not in vnc:
             create_vnc_connection(config, auth, ip, vnc_id)
 
 # delete VNC
         
     for ip in vnc:
-        if ip not in ips:
+        if ip not in ips_vnc:
             print("delete VNC %s (%s)" % (ip, vnc[ip]))
             guac_del_connection(config, auth, vnc[ip])
 

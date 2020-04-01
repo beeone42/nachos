@@ -45,15 +45,15 @@ if __name__ == "__main__":
 
     users_to_create = []
     for user in ldap_users:
-        if user not in guacamole_users:
+        if user not in guacamole_users and (not config.get("whitelist") or user in config["whitelist"]):
             users_to_create.append(user)
     print("%d users to create" % len(users_to_create))
 
 
     users_to_delete = []
     for user in guacamole_users:
-        if (guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]):
-            if (user) not in ldap_users:
+        if guacamole_users[user]['attributes']['guac-organization'] == config["guac_group"]:
+            if user not in ldap_users:
                 users_to_delete.append(user)
                 print("REM %s", user)
     print("%d users to delete" % len(users_to_delete))

@@ -18,7 +18,7 @@
     "ldap_base":"ou=people,dc=42campus,dc=org",
     "krb5_keytab":"nachos.keytab",
     "krb5_principal":"nachos/guacamole",
-    "guac_api":"https://guacamole.42campus.org/api",
+    "guac_api":"http://localhost:8080/guacamole/api",
     "guac_user":"guacadmin",
     "guac_pass":"ChangeMe",
     "guac_group":"students",

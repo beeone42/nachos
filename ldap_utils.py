@@ -17,15 +17,22 @@ def open_and_load_config():
         sys.exit(1)
 
 def kinit(config):
-    subprocess.check_call("/usr/bin/kinit -kt %s %s" % (config["krb5_keytab"], config["krb5_principal"]), shell=True)
+    if (config["krb5_keytab"] != ""):
+        subprocess.check_call("/usr/bin/kinit -kt %s %s" % (config["krb5_keytab"], config["krb5_principal"]), shell=True)
 
-
+def bind_ldap(config, con):
+    if (config["krb5_keytab"] != ""):
+        auth_tokens = ldap.sasl.gssapi()
+        con.sasl_interactive_bind_s('', auth_tokens)
+    else:
+        con.simple_bind_s('', '')
+        
 def connect_ldap(config):
     try:
         kinit(config)
         con = ldap.initialize('ldaps://%s' % config["ldap_host"])
-        auth_tokens = ldap.sasl.gssapi()
-        con.sasl_interactive_bind_s('', auth_tokens)
+        con.protocol_version = ldap.VERSION3
+        bind_ldap(config, con)
     except Exception as e:
         return {'error': str(e)}, 422
     return con

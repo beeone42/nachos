@@ -9,6 +9,12 @@ setTimeout(function() {
 </script>
 </head>
 <body>
-<div>First, let's <a href='{{url}}'>check your identity on the intranet...</a></div>
+  <div>
+    First, let's <a href='{{url}}'>check your identity on the intranet...</a><br />
+ %if (msg != ""):
+    <br />
+    {{msg}}
+ %end
+  </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from bottle import route, run, get, post, request, template
+from bottle import abort, route, run, get, post, request, response, template
 import os, json, requests, urllib.parse
 
 from guacamole import *
@@ -52,38 +52,64 @@ def get_intra_token(code):
     print(r.content)
     return False
 
-def get_intra_oauth_url():
-    url = ("%s?client_id=%s&redirect_uri=%s&response_type=code" %
+def get_intra_oauth_url(state):
+    url = ("%s?client_id=%s&redirect_uri=%s&response_type=code&state=%s" %
            (config["intra_authorize_url"],
             config["intra_client_id"],
-            urllib.parse.quote(config["fajitas_url"], safe=''))
+            urllib.parse.quote(config["fajitas_url"], safe=''),
+            state)
     )
     return url
     
 @route('/')
 def hello():
-    if 'Authorization' in request.headers:
-        return (request.headers.get('Authorization'))
-    else:
-        return template('hello', url=get_intra_oauth_url())
+    return template('hello', url=get_intra_oauth_url("set"), msg="" )
+
+@route('/dl')
+def hello():
+    return template('hello', url=get_intra_oauth_url("dl"), msg="\nDownloading home could be long, be patient...")
 
 @route('/register')
 def register():
     code = request.query.get('code')
     token = get_intra_token(code)
+    state = request.query.get('state')
     print(token)
     if token == False:
-        return template('failed', url=get_intra_oauth_url())
-    
+        return template('failed', url=get_intra_oauth_url(state))
+
     infos = get_intra_infos(token)
     login = infos['login']
+#    login = "jpeguet"
 
-    con = connect_ldap(config)
-    linfo = get_ldap_users(config, con, login)
-    if (len(linfo) == 0):
-        return template('not-found', login = login)
+    if (state == 'dl'):
+        for h in config["home_storage"]:
+            url = "{}check/{}/{}".format(h, config["intra_client_secret"], login)
+            ck = requests.get(url)
+            if ck.ok:
+                url = "{}dl/{}/{}".format(h, config["intra_client_secret"], login)
+                r = requests.get(url, stream=True)
+                if not r.ok:
+                    abort(403, r.content)
+
+                response.set_header('Content-Length', r.headers['Content-Length'])
+                response.set_header('Content-Disposition', 'attachment; filename="%s.tar.gz"' % login)
+                response.content_type = r.headers['content-type']
+                return r.raw
+            else:
+                if ck.status_code == 503:
+                    abort(503, "Service busy, try again later")
+                    
+        abort(404, "Home not found")
+
+    else:
     
-    return template('register', url=get_intra_oauth_url(), token=token, infos=infos)
+        con = connect_ldap(config)
+        linfo = get_ldap_users(config, con, login)
+        if (len(linfo) == 0):
+            return template('not-found', login = login)
+    
+        return template('register', url=get_intra_oauth_url(state), token=token, infos=infos)
 
 @route('/set', method='POST')
 def set_passwd():

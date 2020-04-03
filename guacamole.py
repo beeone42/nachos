@@ -222,7 +222,9 @@ def create_ssh_connection(config, auth, ip, ssh_id):
                "name":"ssh:%s" % ip,
                "protocol":"ssh",
                "parameters":{"port":config["guac_ssh_port"],
-                             "hostname":ip},
+                             "hostname":ip,
+                             "enable-sftp":config["guac_ssh_sftp_enable"],
+                             "sftp-root-directory":config["guac_ssh_sftp_root_directory"]},
                "attributes":{"max-connections":config["guac_ssh_max_co"],
                              "max-connections-per-user":config["guac_ssh_max_per_user"]}
     }

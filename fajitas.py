@@ -103,6 +103,9 @@ def register():
         abort(404, "Home not found")
 
     else:
+        if config.get("whitelist") and login not in config["whitelist"]:
+            print("Unauthorized user %s" % login)
+            return template("failed", url=get_intra_oauth_url())
     
         con = connect_ldap(config)
         linfo = get_ldap_users(config, con, login)

@@ -27,7 +27,24 @@ def get_vnc_enc(password):
 
 
 if __name__ == '__main__':
-    import sys
+    import sys, os
+    from subprocess import Popen, PIPE
+    
+    print('this script does not work as expected, use vnc.pl')
+    if (os.path.exists("vnc.pl")):
+        if len(sys.argv) > 1:
+            p = sys.argv[1]
+        else:
+            config = open_and_load_config()
+            p = get_vnc_enc(config["guac_vnc_pass"])
+        output = Popen(["./vnc.pl", p], stdout=PIPE).communicate()[0]
+        print("vnc.pl result:")
+        print(output)
+    sys.exit()
+
+
+#####
+    
     if len(sys.argv) > 1:
         print(get_vnc_enc(sys.argv[1]))
     else:

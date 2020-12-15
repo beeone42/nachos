@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, binascii, json
+import os, binascii, json, random, string
 import d3des as d # for brevity - narrow column
 
 CONFIG_FILE = 'config.json'
@@ -25,36 +25,25 @@ def get_vnc_enc(password):
     ctext = d.desfunc(passpadd, ekey)
     return binascii.hexlify(ctext).decode('utf-8')
 
+def get_random_alphanumeric_string(length):
+    letters_and_digits = string.ascii_letters + string.digits
+    result_str = ''.join((random.choice(letters_and_digits) for i in range(length)))
+    return result_str
 
 if __name__ == '__main__':
     import sys, os
     from subprocess import Popen, PIPE
     
-    print('this script does not work as expected, use vnc.pl')
+#    print('this script does not work as expected, use vnc.pl')
     if (os.path.exists("vnc.pl")):
         if len(sys.argv) > 1:
             p = sys.argv[1]
+            if (p == "random"):
+                p = get_random_alphanumeric_string(8)
         else:
             config = open_and_load_config()
-            p = get_vnc_enc(config["guac_vnc_pass"])
+            p = config["guac_vnc_pass"]
+            
         output = Popen(["./vnc.pl", p], stdout=PIPE).communicate()[0]
-        print("vnc.pl result:")
-        print(output)
-    sys.exit()
-
-
-#####
-    
-    if len(sys.argv) > 1:
-        print(get_vnc_enc(sys.argv[1]))
-    else:
-#        print('usage: %s <password>' % sys.argv[0])
-        config = open_and_load_config()
-        p = get_vnc_enc(config["guac_vnc_pass"])
-        print("")
-        print("vnc.crypt('%s') = %s" % (config["guac_vnc_pass"], p))
-        print("")
-        print("Add this to your ansiblecluster/roles/remote/defaults/main.yml")
-        print("")
-        print("guacamole_vnc_password_crypted: %s" % p)
-        print("")
+        print("guacamole_vnc_password: %s" % p)
+        print("guacamole_vnc_encrypted_password: %s" % output)

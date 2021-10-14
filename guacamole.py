@@ -162,6 +162,49 @@ def guac_del_connection(config, auth, id):
     )
 
 
+
+# https://guacamole.42kl.edu.my/api/session/data/postgresql/users/aau/permissions
+def guac_get_user_permissions(config, auth, user):
+        return guac_request(
+                token = auth["authToken"],
+                method = 'GET',
+                url = '{}/session/data/{}/users/{}/permissions'.format(
+                        config["guac_api"],
+                        auth["dataSource"],
+                        user
+                )
+        )
+
+
+# https://guacamole.42kl.edu.my/api/session/data/postgresql/users/aau/permissions
+# [{"op":"add","path":"/connectionPermissions/305","value":"READ"}]
+def guac_add_connection_to_user(config, auth, user, co_id):
+        payload = [{"op":"add","path":"/connectionPermissions/%s" % co_id ,"value":"READ"}]
+        print("payload: %s" % payload)
+        return guac_request(
+                token = auth["authToken"],
+                method = 'PATCH',
+                url = '{}/session/data/{}/users/{}/permissions'.format(
+                        config["guac_api"],
+                        auth["dataSource"],
+                        user
+                ),
+                payload = payload
+        )
+
+def guac_del_connection_to_user(config, auth, user, co_id):
+        payload = [{"op":"remove","path":"/connectionPermissions/%s" % co_id ,"value":"READ"}]
+        return guac_request(
+                token = auth["authToken"],
+                method = 'PATCH',
+                url = '{}/session/data/{}/users/{}/permissions'.format(
+                        config["guac_api"],
+                        auth["dataSource"],
+                        user
+                ),
+                payload = payload
+        )
+
 def get_rand_pass():
     # generate random passwd
     return uuid.uuid4().hex
